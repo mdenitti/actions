@@ -9,34 +9,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    
-    - name: Deploy to server using SSH Action
-      uses: appleboy/ssh-action@master
-      with:
-        host: productionserver.be
-        username: productionserverbe
-        key: ${{ secrets.DEPLOY_SSH_KEY }}
-        script: |
-          mkdir -p www/massimo
-            
-    - name: Deploy files using SCP Action
-      uses: appleboy/scp-action@master
-      with:
-        host: productionserver.be
-        username: productionserverbe
-        key: ${{ secrets.DEPLOY_SSH_KEY }}
-        source: "."
-        target: "www/massimo"
-        rm: false
-
-    - name: Run post-deployment script
-      uses: appleboy/ssh-action@master
-      with:
-        host: productionserver.be
-        username: productionserverbe
-        key: ${{ secrets.DEPLOY_SSH_KEY }}
-        script: cd www/massimo && bash post-deploy.sh
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Setup deploy key
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > $GITHUB_WORKSPACE/ssh/id_rsa
+          chmod 600 $GITHUB_WORKSPACE/ssh/id_rsa
+          ssh-keyscan productionserver.be >> $GITHUB_WORKSPACE/ssh/known_hosts
+          
+      - name: Deploy to server
+        run: |
+          rsync -e "ssh -i $GITHUB_WORKSPACE/ssh/id_rsa -o UserKnownHostsFile=$GITHUB_WORKSPACE/ssh/known_hosts" -avz --exclude '.git/' \
+                     --exclude '.github/' \
+                     --exclude 'node_modules/' \
+                     --exclude '.env' \
+                     --exclude '.env.example' \
+                     ./ productionserverbe@ssh.productionserver.be:www/massimo/
+          
+      - name: Post-deployment commands
+        run: |
+          ssh -i $GITHUB_WORKSPACE/ssh/id_rsa -o UserKnownHostsFile=$GITHUB_WORKSPACE/ssh/known_hosts productionserverbe@ssh.productionserver.be "cd www/massimo && bash post-deploy.sh"
