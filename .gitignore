@@ -6,6 +6,7 @@
 /storage/*.key
 /storage/pail
 /vendor
+# database.sqlite is deliberately NOT ignored to include it in version control
 .env
 .env.backup
 .env.production
