@@ -25,40 +25,28 @@ echo "🔄 Updating Composer dependencies..."
 composer install --no-interaction --prefer-dist --optimize-autoloader
 
 # Clear all caches
-echo "🧹 Clearing all cache..."
 php artisan cache:clear
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
-php artisan optimize:clear
-
-# Set proper permissions
-echo "🔒 Setting proper permissions..."
-chmod -R 775 storage bootstrap/cache
-chmod -R 775 public
 
 # Create storage symlink if it doesn't exist
-echo "🔗 Creating storage link..."
 php artisan storage:link
 
-# Check routes
-echo "🛣️  Verifying routes configuration..."
-php artisan route:list
-
-# Optimize the application
-echo "⚡ Optimizing application..."
-php artisan optimize
-
-# Generate route cache for better performance
-echo "🚀 Generating route cache..."
-php artisan route:cache
+# Create/update .htaccess in the root directory to remove /public from URLs
+echo "📄 Setting up root .htaccess to remove /public from URLs..."
+cat > .htaccess << 'EOL'
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Redirect all requests to the public folder
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+EOL
+echo "✓ Root .htaccess created"
 
 # Run migrations (optional, uncomment if needed)
-# echo "🗄️  Running database migrations..."
 # php artisan migrate --force
-
-# Verify application is running correctly
-echo "✅ Verifying application health..."
-php artisan route:resolve / --method=GET
 
 echo "✅ Deployment completed successfully!"
