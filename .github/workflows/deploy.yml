@@ -28,6 +28,10 @@ jobs:
                      --exclude '.env.example' \
                      ./ productionserverbe@ssh.productionserver.be:www/massimo/
           
+      - name: Make post-deploy script executable
+        run: |
+          ssh -o StrictHostKeyChecking=no productionserverbe@ssh.productionserver.be "chmod +x ~/www/massimo/post-deploy.sh"
+          
       - name: Post-deployment commands
         run: |
           ssh -o StrictHostKeyChecking=no productionserverbe@ssh.productionserver.be "cd www/massimo && bash post-deploy.sh"
