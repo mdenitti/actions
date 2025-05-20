@@ -17,9 +17,9 @@ jobs:
       - name: Setup deploy key
         run: |
           mkdir -p $GITHUB_WORKSPACE/ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > $GITHUB_WORKSPACE/ssh/id_rsa
+          printf "%s" "${{ secrets.DEPLOY_SSH_KEY }}" > $GITHUB_WORKSPACE/ssh/id_rsa
           chmod 600 $GITHUB_WORKSPACE/ssh/id_rsa
-          ssh-keyscan productionserver.be >> $GITHUB_WORKSPACE/ssh/known_hosts
+          ssh-keyscan productionserver.be >> $GITHUB_WORKSPACE/ssh/known_hosts || true
           
       - name: Deploy to server
         run: |
