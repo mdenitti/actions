@@ -19,11 +19,10 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/ssh
           printf "%s" "${{ secrets.DEPLOY_SSH_KEY }}" > $GITHUB_WORKSPACE/ssh/id_rsa
           chmod 600 $GITHUB_WORKSPACE/ssh/id_rsa
-          ssh-keyscan productionserver.be >> $GITHUB_WORKSPACE/ssh/known_hosts || true
           
       - name: Deploy to server
         run: |
-          rsync -e "ssh -i $GITHUB_WORKSPACE/ssh/id_rsa -o UserKnownHostsFile=$GITHUB_WORKSPACE/ssh/known_hosts" -avz --exclude '.git/' \
+          rsync -e "ssh -i $GITHUB_WORKSPACE/ssh/id_rsa -o StrictHostKeyChecking=no" -avz --exclude '.git/' \
                      --exclude '.github/' \
                      --exclude 'node_modules/' \
                      --exclude '.env' \
@@ -32,4 +31,4 @@ jobs:
           
       - name: Post-deployment commands
         run: |
-          ssh -i $GITHUB_WORKSPACE/ssh/id_rsa -o UserKnownHostsFile=$GITHUB_WORKSPACE/ssh/known_hosts productionserverbe@ssh.productionserver.be "cd www/massimo && bash post-deploy.sh"
+          ssh -i $GITHUB_WORKSPACE/ssh/id_rsa -o StrictHostKeyChecking=no productionserverbe@ssh.productionserver.be "cd www/massimo && bash post-deploy.sh"
