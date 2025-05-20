@@ -1,1 +1,1 @@
-*.sqlite*
+# Removed *.sqlite* to include database.sqlite in version control
